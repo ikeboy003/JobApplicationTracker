@@ -3,21 +3,37 @@ package main
 import (
 	"fmt"
 	"jobtracker/dao"
-	"jobtracker/models"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
+var jobDao *dao.JobDAO
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	jobDao = dao.NewJobDAO()
+}
 func main() {
 
-	newJob := models.Job{
-		JobName:    "Fake Job",
-		JobCompany: "Fake Company",
-		AppStatus:  "applied",
-	}
-	jdao := dao.NewJobDAO()
+	r := gin.Default()
+	port := os.Getenv("PORT")
 
-	res, _ := jdao.Create(newJob)
-	if res {
-		fmt.Println("Job Created")
-	}
+	r.GET(`/job/:id`, func(ctx *gin.Context) {
 
+		id, _ := strconv.Atoi(ctx.Param("id"))
+
+		job := jobDao.Read(id)
+		fmt.Println(job)
+		ctx.JSON(200, job)
+
+	})
+
+	r.Run(":" + port)
 }

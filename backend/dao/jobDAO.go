@@ -18,7 +18,11 @@ func (j *JobDAO) Create(job models.Job) (bool, error) {
 
 	return true, nil
 }
+func (j *JobDAO) Read(jobId int) (job models.Job) {
 
+	db.Where("job_id= ?", jobId).First(&job)
+	return job
+}
 func NewJobDAO() *JobDAO {
 
 	return &JobDAO{}
