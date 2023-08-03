@@ -18,12 +18,40 @@ func (j *JobDAO) Create(job models.Job) (bool, error) {
 
 	return true, nil
 }
-func (j *JobDAO) Read(jobId int) (job models.Job) {
-
+func (j *JobDAO) Read(jobId int) models.Job {
+	var job models.Job
 	db.Where("job_id= ?", jobId).First(&job)
 	return job
 }
 func NewJobDAO() *JobDAO {
 
 	return &JobDAO{}
+}
+
+func (j *JobDAO) PerformTransaction(jobs []models.Job) error {
+
+	tx := db.Begin()
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, job := range jobs {
+		if err := tx.Create(&job).Error; err != nil {
+			tx.Rollback()
+			return err
+
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return nil
 }
