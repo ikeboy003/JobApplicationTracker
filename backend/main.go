@@ -31,6 +31,7 @@ func main() {
 	r := gin.Default()
 	port := os.Getenv("PORT")
 	r.GET(`/job/:id`, handlePostingJob)
+	r.GET(`/listAll`, GetAllJobs)
 	r.POST("/upload", handleCSVPosting)
 	r.Run(":" + port)
 
@@ -110,4 +111,9 @@ func persistFileInDB(file multipart.File, err error, ctx *gin.Context) error {
 		return err
 	}
 	return nil
+}
+
+func GetAllJobs(ctx *gin.Context) {
+	jobs := jobDao.GetAllJobs()
+	ctx.JSON(200, jobs)
 }

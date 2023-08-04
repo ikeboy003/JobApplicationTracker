@@ -55,3 +55,10 @@ func (j *JobDAO) PerformTransaction(jobs []models.Job) error {
 	}
 	return nil
 }
+
+func (j *JobDAO) GetAllJobs() []models.Job {
+	var jobs []models.Job
+	db.Find(&jobs)
+
+	return jobs
+}
