@@ -32,14 +32,31 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 	port := os.Getenv("PORT")
-	r.GET(`/job/:id`, handlePostingJob)
+	r.GET(`/job/:id`, handleReadingJob)
 	r.GET(`/listAll`, GetAllJobs)
 	r.POST("/upload", handleCSVPosting)
+	r.POST("/newJob", handleJobPosting)
 	r.Run(":" + port)
 
 }
+func handleJobPosting(ctx *gin.Context) {
+	var jobData models.Job
 
-func handlePostingJob(ctx *gin.Context) {
+	// Bind JSON data from request body to jobData
+	if err := ctx.ShouldBindJSON(&jobData); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if _, err := jobDao.Create(jobData); err != nil {
+		ctx.JSON(400, gin.H{
+			"error": "couldn't create",
+		})
+	} else {
+		ctx.Status(http.StatusOK)
+	}
+}
+
+func handleReadingJob(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
